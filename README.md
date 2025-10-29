@@ -83,7 +83,7 @@ image is built automatically from the `main` branch and any tag that matches `v*
 1. Create directories on the host to persist configuration and outputs:
 
    ```sh
-   mkdir -p ~/.unit3d-upload-checker/config ~/.unit3d-upload-checker/outputs
+   mkdir -p upload-checker/config upload-checker/outputs
    ```
 
 2. Launch the container while mounting the folders you created above. Mount any
@@ -92,8 +92,8 @@ image is built automatically from the `main` branch and any tag that matches `v*
 
    ```sh
    docker run --rm -it \
-     -v ~/.unit3d-upload-checker/config:/app/data \
-     -v ~/.unit3d-upload-checker/outputs:/app/outputs \
+     -v ~/path/here/upload-checker/config:/app/data \
+     -v ~/path/here/upload-checker/outputs:/app/outputs \
      -v /mnt/movies:/movies \
      ghcr.io/<owner>/unit3d-upload-checker:latest setting-add -t dir -s /movies/
    ```
@@ -102,8 +102,8 @@ image is built automatically from the `main` branch and any tag that matches `v*
 
    ```sh
    docker run --rm -it \
-     -v ~/.unit3d-upload-checker/config:/app/data \
-     -v ~/.unit3d-upload-checker/outputs:/app/outputs \
+     -v ~/path/here/upload-checker/config:/app/data \
+     -v ~/path/here/upload-checker/outputs:/app/outputs \
      -v /mnt/movies:/movies \
      ghcr.io/<owner>/unit3d-upload-checker:latest run-all -v
    ```
