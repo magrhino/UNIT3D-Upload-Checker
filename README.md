@@ -73,6 +73,54 @@ run all
 ./check.py run-all -v
 ```
 
+## Container Image
+
+Prebuilt container images are published to the GitHub Container Registry (GHCR). The
+image is built automatically from the `main` branch and any tag that matches `v*`.
+
+### Run with Docker
+
+1. Create directories on the host to persist configuration and outputs:
+
+   ```sh
+   mkdir -p ~/.unit3d-upload-checker/config ~/.unit3d-upload-checker/outputs
+   ```
+
+2. Launch the container while mounting the folders you created above. Mount any
+   directories that you want to scan into the container as well (the example below
+   mounts `/mnt/movies` into the container as `/movies`).
+
+   ```sh
+   docker run --rm -it \
+     -v ~/.unit3d-upload-checker/config:/app/data \
+     -v ~/.unit3d-upload-checker/outputs:/app/outputs \
+     -v /mnt/movies:/movies \
+     ghcr.io/<owner>/unit3d-upload-checker:latest setting-add -t dir -s /movies/
+   ```
+
+3. Subsequent commands can be issued by re-running the container. For example:
+
+   ```sh
+   docker run --rm -it \
+     -v ~/.unit3d-upload-checker/config:/app/data \
+     -v ~/.unit3d-upload-checker/outputs:/app/outputs \
+     -v /mnt/movies:/movies \
+     ghcr.io/<owner>/unit3d-upload-checker:latest run-all -v
+   ```
+
+### Build and publish manually
+
+If you need to build and publish the container manually, authenticate with GHCR and
+push a tagged image:
+
+```sh
+docker build -t ghcr.io/<owner>/unit3d-upload-checker:latest .
+echo "$GHCR_TOKEN" | docker login ghcr.io -u <owner> --password-stdin
+docker push ghcr.io/<owner>/unit3d-upload-checker:latest
+```
+
+Replace `<owner>` with your GitHub username or organization.
+
 ## Example Outputs
 
 ### CSV
