@@ -73,6 +73,13 @@ run all
 ./check.py run-all -v
 ```
 
+## Docker Docs
+
+- [`DOCKER_SETUP.md`](DOCKER_SETUP.md) – build the image, mount media, and configure the
+  checker inside the container.
+- [`DOCKER_USAGE.md`](DOCKER_USAGE.md) – day-to-day commands for running scans,
+  exporters, and maintenance tasks via Docker.
+
 ## Example Outputs
 
 ### CSV

@@ -27,6 +27,8 @@ TRACKER_MAP = {
     "lst": "LST",
     "onlyencodes": "OE",
     "ulcx": "ULCX",
+    "rastastugan": "RAS",
+    "homiehelpdesk": "HHD",
 }
 
 
@@ -498,9 +500,10 @@ class UploadChecker:
                                     get_media_info(file_location)
                                 )
                                 if not any(
-                                    lang.startswith("en") for lang in audio_language
+                                    (lang or "").startswith("en")
+                                    for lang in audio_language
                                 ) and not any(
-                                    sub.startswith("en") for sub in subtitles
+                                    (sub or "").startswith("en") for sub in subtitles
                                 ):
                                     extra_info += (
                                         " No English subtitles found in media info"
@@ -515,9 +518,10 @@ class UploadChecker:
                                 audio_language = media_info["audio_language(s)"]
                                 subtitles = media_info["subtitle(s)"]
                                 if not any(
-                                    lang.startswith("en") for lang in audio_language
+                                    (lang or "").startswith("en")
+                                    for lang in audio_language
                                 ) and not any(
-                                    sub.startswith("en") for sub in subtitles
+                                    (sub or "").startswith("en") for sub in subtitles
                                 ):
                                     extra_info += (
                                         " No English subtitles found in media info"
