@@ -25,7 +25,7 @@ wget https://raw.githubusercontent.com/magrhino/UNIT3D-Upload-Checker/main/docke
 wget https://raw.githubusercontent.com/magrhino/UNIT3D-Upload-Checker/main/docker/entrypoint.sh
 wget -O .env.example https://raw.githubusercontent.com/magrhino/UNIT3D-Upload-Checker/main/docker/.env.example
 wget https://raw.githubusercontent.com/magrhino/UNIT3D-Upload-Checker/main/docker/SETUP_GUIDE.md
-mkdir -p scripts
+mkdir -p scripts config outputs
 wget -O scripts/setup.sh https://raw.githubusercontent.com/magrhino/UNIT3D-Upload-Checker/main/docker/scripts/setup.sh
 ```
 
