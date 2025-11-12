@@ -75,9 +75,9 @@ run all
 
 ## Docker Docs
 
-- [`docker/DOCKER_SETUP.md`](DOCKER_SETUP.md) – build the image, mount media, and configure the
+- [`DOCKER_SETUP.md`](docker/DOCKER_SETUP.md) – build the image, mount media, and configure the
   checker inside the container.
-- [`docker/DOCKER_USAGE.md`](DOCKER_USAGE.md) – day-to-day commands for running scans,
+- [`DOCKER_USAGE.md`](docker/DOCKER_USAGE.md) – day-to-day commands for running scans,
   exporters, and maintenance tasks via Docker.
 
 ## Example Outputs
