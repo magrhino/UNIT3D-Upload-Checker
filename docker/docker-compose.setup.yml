@@ -73,47 +73,49 @@ services:
     # -------------------------------------------------------------------------
     # Environment Variables
     # -------------------------------------------------------------------------
+    # NOTE: Using object/mapping syntax instead of array syntax to properly
+    # handle values with special characters (commas, spaces, etc.)
     environment:
       # === Media Configuration ===
       # IMPORTANT: Use CONTAINER paths here, not host paths
       # These should match where your volumes are mounted
       # Supports comma-separated list: /data/movies,/data/tv,/data/anime
       # Example: MEDIA_DIR=/media/movies,/media/tv
-      - MEDIA_DIR=${MEDIA_DIR}
+      MEDIA_DIR: ${MEDIA_DIR}
 
       # === TMDB Configuration ===
       # Required: TMDB API key for movie metadata
       # Get your key from: https://www.themoviedb.org/settings/api
-      - TMDB_API_KEY=${TMDB_API_KEY}
+      TMDB_API_KEY: ${TMDB_API_KEY}
 
       # === Tracker API Keys ===
       # Add API keys for trackers you want to use
-      - AITH_API_KEY=${AITH_API_KEY:-}
-      - BLU_API_KEY=${BLU_API_KEY:-}
-      - FNP_API_KEY=${FNP_API_KEY:-}
-      - LST_API_KEY=${LST_API_KEY:-}
-      - OE_API_KEY=${OE_API_KEY:-}
-      - RFX_API_KEY=${RFX_API_KEY:-}
-      - UPLOADCX_API_KEY=${UPLOADCX_API_KEY:-}
-      - RAS_API_KEY=${RAS_API_KEY:-}
-      - HHD_API_KEY=${HHD_API_KEY:-}
+      AITH_API_KEY: ${AITH_API_KEY:-}
+      BLU_API_KEY: ${BLU_API_KEY:-}
+      FNP_API_KEY: ${FNP_API_KEY:-}
+      LST_API_KEY: ${LST_API_KEY:-}
+      OE_API_KEY: ${OE_API_KEY:-}
+      RFX_API_KEY: ${RFX_API_KEY:-}
+      UPLOADCX_API_KEY: ${UPLOADCX_API_KEY:-}
+      RAS_API_KEY: ${RAS_API_KEY:-}
+      HHD_API_KEY: ${HHD_API_KEY:-}
 
       # === Enabled Trackers ===
       # Comma-separated list of tracker nicknames to enable
       # Example: "ras,hhd,fnp,blu"
       # Valid nicknames: aith, blu, fnp, lst, oe, rfx, ulcx, ras, hhd
-      - SITES_ENABLED=${SITES_ENABLED:-}
+      SITES_ENABLED: ${SITES_ENABLED:-}
 
       # === Optional: Automation Tool Paths ===
       # Path to gg-bot-upload-assistant (for gg export)
-      - GG_PATH=${GG_PATH:-}
+      GG_PATH: ${GG_PATH:-}
 
       # Path to upload-assistant (for ua export)
-      - UA_PATH=${UA_PATH:-}
+      UA_PATH: ${UA_PATH:-}
 
       # === Python Configuration ===
-      - PYTHONUNBUFFERED=1
-      - PYTHONDONTWRITEBYTECODE=1
+      PYTHONUNBUFFERED: 1
+      PYTHONDONTWRITEBYTECODE: 1
 
 # =============================================================================
 # Usage Examples

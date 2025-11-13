@@ -111,14 +111,20 @@ echo "=================================================="
 
 if [ -n "$MEDIA_DIR" ]; then
     echo "Processing directories from MEDIA_DIR: $MEDIA_DIR"
+    echo "DEBUG: Raw MEDIA_DIR value: '$MEDIA_DIR'"
+    echo "DEBUG: Character count: ${#MEDIA_DIR}"
 
     # Split comma-separated list
     IFS=',' read -ra DIRS <<< "$MEDIA_DIR"
     ADDED_COUNT=0
 
-    for DIR in "${DIRS[@]}"; do
+    echo "DEBUG: Number of directories detected: ${#DIRS[@]}"
+
+    for i in "${!DIRS[@]}"; do
         # Trim whitespace
-        DIR=$(echo "$DIR" | xargs)
+        DIR=$(echo "${DIRS[$i]}" | xargs)
+
+        echo "DEBUG: Processing index $i: '${DIRS[$i]}' -> trimmed: '$DIR'"
 
         if [ -n "$DIR" ]; then
             echo "  → Adding directory: $DIR"
