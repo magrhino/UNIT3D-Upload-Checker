@@ -17,10 +17,11 @@ This guide explains how to configure and use the UNIT3D Upload Checker Docker co
 
 
 # 1. Obtain the Docker assets (pick one)
-#    A) Download just the docker bundle into an empty folder (Recomnmended)
+#    A) Download just the docker bundle into an empty folder (Recommended)
 ```
 mkdir unit3d-upload-checker-docker && cd $_
 wget https://raw.githubusercontent.com/magrhino/UNIT3D-Upload-Checker/main/docker/docker-compose.yml
+wget https://raw.githubusercontent.com/magrhino/UNIT3D-Upload-Checker/main/docker/docker-compose.setup.yml
 wget https://raw.githubusercontent.com/magrhino/UNIT3D-Upload-Checker/main/docker/Dockerfile
 wget https://raw.githubusercontent.com/magrhino/UNIT3D-Upload-Checker/main/docker/entrypoint.sh
 wget -O .env.example https://raw.githubusercontent.com/magrhino/UNIT3D-Upload-Checker/main/docker/.env.example
@@ -45,10 +46,18 @@ nano .env  # Add your API keys and settings
 docker-compose build
 ```
 
-# 4. Run the one-time setup command (must complete before the container starts)
+# 4. Run the one-time setup script (must complete before the container starts)
+
+# Option A: Easy setup with docker-compose (RECOMMENDED)
+```
+docker-compose -f docker-compose.setup.yml run --rm setup
+```
+
+# Option B: Manual docker run command (if you prefer)
 ```
 docker run --rm -it \
   -v ./config:/app/data:rw \
+  -v /your/host/path:/data:ro \
   --env-file .env \
   unit3d-checker:latest \
   /app/scripts/setup.sh
