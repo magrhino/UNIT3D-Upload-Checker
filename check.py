@@ -41,7 +41,11 @@ class UploadChecker:
         self.data_folder = "./data/"
         self.scan_data = {}
         self.search_data = {}
-        self.term_size = os.get_terminal_size()
+        try:
+            self.term_size = os.get_terminal_size()
+        except OSError:
+            # Fallback for non-terminal environments (e.g., Docker, scripts)
+            self.term_size = os.terminal_size((80, 24))
         self.extract_filename = re.compile(r"^.*[\\\/](.*)")
 
         # Initialize search data for enabled sites

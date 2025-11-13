@@ -117,12 +117,6 @@ COPY --from=builder /tmp/deps /usr/local/lib/python-packages
 # We copy the entire cloned repository
 COPY --from=builder /tmp/build /app
 
-# PATCH: Fix terminal size detection for non-interactive environments
-# The upstream check.py crashes when os.get_terminal_size() is called without a TTY
-# This happens during Docker entrypoint execution, CI/CD pipelines, cron jobs, etc.
-COPY scripts/patch_check.py /tmp/patch_check.py
-RUN python3 /tmp/patch_check.py && rm /tmp/patch_check.py
-
 # Create necessary runtime directories
 RUN mkdir -p /app/data /app/outputs /data && \
     echo "✓ Application directories created"
