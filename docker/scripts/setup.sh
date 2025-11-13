@@ -22,7 +22,7 @@ ERRORS=0
 # 1. CREATE DEFAULT SETTINGS.JSON
 # ================================================
 
-if [ ! -f "/app/data/settings.json" ] && [ ! -f "./data/settings.json" ] && [ ! -f "data/settings.json" ]; then
+if [ ! -f "/app/data/settings.json" ] || [ ! -s "/app/data/settings.json" ]; then
     echo ""
     echo "Creating default settings.json..."
     python3 << 'PYEOF'
@@ -54,28 +54,8 @@ default_settings = {
     'ignored_keywords': ['10bit', '10-bit', 'DVD'],
 }
 
-# Try to determine the correct data directory
-# Prefer ./data for compatibility with check.py which uses ./data/
-data_dirs = ['./data', 'data', '/app/data']
-data_dir = None
-for d in data_dirs:
-    try:
-        os.makedirs(d, exist_ok=True)
-        test_file = os.path.join(d, '.test')
-        with open(test_file, 'w') as f:
-            f.write('test')
-        os.remove(test_file)
-        data_dir = d
-        break
-    except:
-        continue
-
-if not data_dir:
-    print('✗ Unable to create data directory')
-    exit(1)
-
-settings_file = os.path.join(data_dir, 'settings.json')
-with open(settings_file, 'w') as f:
+os.makedirs('/app/data', exist_ok=True)
+with open('/app/data/settings.json', 'w') as f:
     json.dump(default_settings, f, indent=2)
 print('✓ Created default settings')
 PYEOF
@@ -267,22 +247,9 @@ python3 << 'PYEOF'
 import json
 import os
 
-# Try multiple possible paths for settings.json
-# Prefer ./data/settings.json for compatibility with check.py
-settings_paths = ['./data/settings.json', 'data/settings.json', '/app/data/settings.json']
-settings_file = None
-
-for path in settings_paths:
-    if os.path.exists(path):
-        settings_file = path
-        break
-
 try:
-    if not settings_file:
-        print("Unable to find settings.json")
-    else:
-        with open(settings_file) as f:
-            s = json.load(f)
+    with open('/app/data/settings.json') as f:
+        s = json.load(f)
 
         print("Configuration Summary:")
         print("---------------------")
