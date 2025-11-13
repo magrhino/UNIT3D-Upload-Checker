@@ -78,7 +78,8 @@ services:
       # IMPORTANT: Use CONTAINER paths here, not host paths
       # These should match where your volumes are mounted
       # Supports comma-separated list: /data/movies,/data/tv,/data/anime
-      - MEDIA_DIR=${CONTAINER_MEDIA_DIR:-/data}
+      # Example: MEDIA_DIR=/media/movies,/media/tv
+      - MEDIA_DIR=${MEDIA_DIR}
 
       # === TMDB Configuration ===
       # Required: TMDB API key for movie metadata
