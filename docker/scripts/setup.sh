@@ -99,20 +99,39 @@ fi
 
 echo ""
 echo "=================================================="
-echo "   Configuring Media Directory"
+echo "   Configuring Media Directories"
 echo "=================================================="
 
 if [ -n "$MEDIA_DIR" ]; then
-    echo "Adding directory: $MEDIA_DIR"
-    if python3 check.py setting-add -t dir -s "$MEDIA_DIR" > /dev/null 2>&1; then
-        echo "✓ Media directory configured"
-    else
-        echo "✗ Failed to add directory (may not exist)"
-        ERRORS=$((ERRORS + 1))
-    fi
+    echo "Processing directories from MEDIA_DIR: $MEDIA_DIR"
+
+    # Split comma-separated list
+    IFS=',' read -ra DIRS <<< "$MEDIA_DIR"
+    ADDED_COUNT=0
+
+    for DIR in "${DIRS[@]}"; do
+        # Trim whitespace
+        DIR=$(echo "$DIR" | xargs)
+
+        if [ -n "$DIR" ]; then
+            echo "  → Adding directory: $DIR"
+            if python3 check.py setting-add -t dir -s "$DIR" > /dev/null 2>&1; then
+                echo "    ✓ $DIR added"
+                ADDED_COUNT=$((ADDED_COUNT + 1))
+            else
+                echo "    ✗ Failed to add $DIR (may not exist or invalid path)"
+                ERRORS=$((ERRORS + 1))
+            fi
+        fi
+    done
+
+    echo ""
+    echo "Summary: $ADDED_COUNT directories configured"
 else
     echo "⚠ MEDIA_DIR environment variable not provided"
     echo "  Set MEDIA_DIR in your .env file"
+    echo "  You can specify multiple directories separated by commas:"
+    echo "  MEDIA_DIR=/data/movies,/data/tv,/data/anime"
 fi
 
 # ================================================
