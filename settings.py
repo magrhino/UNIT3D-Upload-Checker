@@ -185,6 +185,9 @@ class Settings:
             # Add the new path to the list
             directories.append(path)
             self.validate_directories()
+            print(path, " Successfully added to  directories")
+        else:
+            print(path, " Already in  directories")
 
     def validate_tmdb(self, key):
         try:

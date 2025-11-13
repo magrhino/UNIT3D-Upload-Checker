@@ -81,10 +81,17 @@ echo "=================================================="
 
 if [ -n "$TMDB_API_KEY" ]; then
     echo "Configuring TMDB key..."
-    if python3 check.py setting-add -t tmdb -s "$TMDB_API_KEY" > /dev/null 2>&1; then
+    # Capture output to check for errors
+    OUTPUT=$(python3 check.py setting-add -t tmdb -s "$TMDB_API_KEY" 2>&1)
+    if echo "$OUTPUT" | grep -q "Successfully added"; then
         echo "✓ TMDB API key configured"
     else
-        echo "✗ Failed to configure TMDB key (may be invalid)"
+        echo "✗ Failed to configure TMDB key"
+        if echo "$OUTPUT" | grep -q "Invalid API Key"; then
+            echo "  API key validation failed"
+        elif [ -n "$OUTPUT" ]; then
+            echo "  $(echo "$OUTPUT" | head -n 1)"
+        fi
         ERRORS=$((ERRORS + 1))
     fi
 else
@@ -115,11 +122,20 @@ if [ -n "$MEDIA_DIR" ]; then
 
         if [ -n "$DIR" ]; then
             echo "  → Adding directory: $DIR"
-            if python3 check.py setting-add -t dir -s "$DIR" > /dev/null 2>&1; then
+            # Capture output to check for errors
+            OUTPUT=$(python3 check.py setting-add -t dir -s "$DIR" 2>&1)
+            if echo "$OUTPUT" | grep -q "Successfully added"; then
                 echo "    ✓ $DIR added"
                 ADDED_COUNT=$((ADDED_COUNT + 1))
             else
-                echo "    ✗ Failed to add $DIR (may not exist or invalid path)"
+                echo "    ✗ Failed to add $DIR"
+                if echo "$OUTPUT" | grep -q "Path doesn't exist"; then
+                    echo "      Directory does not exist"
+                elif echo "$OUTPUT" | grep -q "Already in"; then
+                    echo "      Already configured"
+                elif [ -n "$OUTPUT" ]; then
+                    echo "      $(echo "$OUTPUT" | head -n 1)"
+                fi
                 ERRORS=$((ERRORS + 1))
             fi
         fi
@@ -161,11 +177,19 @@ for ENV_VAR in "${!TRACKERS[@]}"; do
     TRACKER="${TRACKERS[$ENV_VAR]}"
     if [ -n "${!ENV_VAR}" ]; then
         echo "  → Configuring $TRACKER..."
-        if python3 check.py setting-add -t "$TRACKER" -s "${!ENV_VAR}" > /dev/null 2>&1; then
+        # Capture output to check for errors
+        OUTPUT=$(python3 check.py setting-add -t "$TRACKER" -s "${!ENV_VAR}" 2>&1)
+        if echo "$OUTPUT" | grep -q "was added to\|Successfully added"; then
             echo "    ✓ $TRACKER API key added"
             CONFIGURED_KEYS=$((CONFIGURED_KEYS + 1))
         else
-            echo "    ✗ Failed to add $TRACKER key (may be invalid)"
+            echo "    ✗ Failed to add $TRACKER key"
+            if echo "$OUTPUT" | grep -q "Invalid API Key"; then
+                echo "      API key validation failed"
+            elif [ -n "$OUTPUT" ]; then
+                # Show first line of error only to keep output clean
+                echo "      $(echo "$OUTPUT" | head -n 1)"
+            fi
             ERRORS=$((ERRORS + 1))
         fi
     fi
@@ -201,11 +225,22 @@ if [ -n "$SITES_ENABLED" ]; then
 
         if [ -n "$SITE" ]; then
             echo "  → Enabling $SITE..."
-            if python3 check.py setting-add -t sites -s "$SITE" > /dev/null 2>&1; then
+            # Capture output to check for errors
+            OUTPUT=$(python3 check.py setting-add -t sites -s "$SITE" 2>&1)
+            if echo "$OUTPUT" | grep -q "Successfully added"; then
                 echo "    ✓ $SITE enabled"
                 ENABLED_COUNT=$((ENABLED_COUNT + 1))
             else
-                echo "    ✗ Failed to enable $SITE (check tracker code is correct)"
+                echo "    ✗ Failed to enable $SITE"
+                if echo "$OUTPUT" | grep -q "is not a supported site"; then
+                    echo "      Invalid tracker code"
+                elif echo "$OUTPUT" | grep -q "no api key"; then
+                    echo "      API key not configured yet"
+                elif echo "$OUTPUT" | grep -q "Already in"; then
+                    echo "      Already enabled"
+                elif [ -n "$OUTPUT" ]; then
+                    echo "      $(echo "$OUTPUT" | head -n 1)"
+                fi
                 ERRORS=$((ERRORS + 1))
             fi
         fi
