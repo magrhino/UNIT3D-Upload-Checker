@@ -1,0 +1,294 @@
+# =============================================================================
+# UNIT3D Upload Checker - Docker Compose Configuration
+# =============================================================================
+# This docker-compose file provides a complete containerized setup for the
+# UNIT3D Upload Checker application with proper configuration, health checks,
+# and resource management.
+#
+# Quick Start:
+#   1. Copy .env.example to .env (if not already done)
+#   2. Edit .env with your API keys and settings
+#   3. Run: docker-compose up -d
+#   4. Access: docker exec -it unit3d-upload-checker bash
+#   5. Execute: python3 check.py run-all -v
+#
+# Configuration:
+#   - All settings are managed through the .env file
+#   - Volumes persist configuration and output data
+#   - Container runs as non-root user for security
+#
+# Volumes:
+#   - ./data → /data: Your media files directory
+#   - ./config → /app/data: Configuration and database files
+#   - ./outputs → /app/outputs: Generated output files (optional explicit mount)
+#
+# =============================================================================
+# Docker Compose v2 format (version field is deprecated and not needed)
+# =============================================================================
+
+services:
+  unit3d-checker:
+    # -------------------------------------------------------------------------
+    # Build Configuration
+    # -------------------------------------------------------------------------
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Customize these build arguments if needed
+        PYTHON_VERSION: 3.11
+        REPO_URL: https://github.com/magrhino/UNIT3D-Upload-Checker.git
+        REPO_BRANCH: main
+
+    image: unit3d-checker:latest
+    container_name: unit3d-upload-checker
+    # -------------------------------------------------------------------------
+    # Container Behavior
+    # -------------------------------------------------------------------------
+    # Restart policy: always restart unless explicitly stopped
+    restart: unless-stopped
+
+    # Interactive terminal for bash access
+    stdin_open: true
+    tty: true
+
+    # Working directory inside container
+    working_dir: /app
+
+    # Default command (can be overridden)
+    command: bash
+
+    # -------------------------------------------------------------------------
+    # Volume Mounts
+    # -------------------------------------------------------------------------
+    volumes:
+      # Media directory: mount ${HOST_MEDIA_DIR} (host) to ${CONTAINER_MEDIA_DIR} (container)
+      # Both values come from .env; ensure the host path exists before starting compose
+      - ${HOST_MEDIA_DIR}:${CONTAINER_MEDIA_DIR}:ro
+
+      # Configuration directory: Settings, database, and search data
+      # This must be read-write for the application to function
+      - ./config:/app/data:rw
+
+      # Outputs directory: Generated txt/csv/gg command files
+      # Optional explicit mount (already created in Dockerfile)
+      # Uncomment if you want outputs on host filesystem
+      - ./outputs:/app/outputs:rw
+
+    # -------------------------------------------------------------------------
+    # Environment Variables
+    # -------------------------------------------------------------------------
+    environment:
+      # === Media Configuration ===
+      # MEDIA_DIR is what the application + setup script consume.
+      # Keep it in sync with CONTAINER_MEDIA_DIR defined in your .env file.
+      - MEDIA_DIR=${CONTAINER_MEDIA_DIR:-/data}
+
+      # === TMDB Configuration ===
+      # Required: TMDB API key for movie metadata matching
+      # Get your key from: https://www.themoviedb.org/settings/api
+      - TMDB_API_KEY=${TMDB_API_KEY}
+
+      # === Tracker API Keys ===
+      # Add API keys for the trackers you want to use
+      # Uncomment and configure in .env file as needed
+
+      # Aither
+      - AITH_API_KEY=${AITH_API_KEY:-}
+
+      # Blutopia
+      - BLU_API_KEY=${BLU_API_KEY:-}
+
+      # FearNoPeer
+      - FNP_API_KEY=${FNP_API_KEY:-}
+
+      # LST
+      - LST_API_KEY=${LST_API_KEY:-}
+
+      # OnlyEncodes
+      - OE_API_KEY=${OE_API_KEY:-}
+
+      # ReelFliX
+      - RFX_API_KEY=${RFX_API_KEY:-}
+
+      # Upload.cx
+      - UPLOADCX_API_KEY=${UPLOADCX_API_KEY:-}
+
+      # Rastastugan
+      - RAS_API_KEY=${RAS_API_KEY:-}
+
+      # HomieHelpDesk
+      - HHD_API_KEY=${HHD_API_KEY:-}
+
+      # === Enabled Trackers ===
+      # Comma-separated list of tracker nicknames to enable
+      # Example: "ras,hhd,fnp,blu"
+      # Valid nicknames: aith, blu, fnp, lst, oe, rfx, ulcx, ras, hhd
+      - SITES_ENABLED=${SITES_ENABLED:-}
+
+      # === Optional: Automation Tool Paths ===
+      # Path to gg-bot-upload-assistant (for gg export)
+      - GG_PATH=${GG_PATH:-}
+
+      # Path to upload-assistant (for ua export)
+      - UA_PATH=${UA_PATH:-}
+
+      # === Python Configuration ===
+      # Prevent Python from buffering stdout/stderr
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+
+    # -------------------------------------------------------------------------
+    # Health Check
+    # -------------------------------------------------------------------------
+    # Tests actual Python imports, not just file existence
+    # This catches missing dependencies and import errors
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import sys; sys.path.insert(0, '/usr/local/lib/python-packages'); import check; import settings; exit(0)"]
+      interval: 30s
+      timeout: 10s
+      start_period: 10s
+      retries: 3
+
+    # -------------------------------------------------------------------------
+    # Resource Limits
+    # -------------------------------------------------------------------------
+    # Uncomment and adjust based on your needs
+    # These limits prevent the container from consuming too many resources
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '2.0'          # Maximum 2 CPU cores
+    #       memory: 2G           # Maximum 2GB RAM
+    #     reservations:
+    #       cpus: '0.5'          # Reserved 0.5 CPU cores
+    #       memory: 512M         # Reserved 512MB RAM
+
+    # -------------------------------------------------------------------------
+    # Logging Configuration
+    # -------------------------------------------------------------------------
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"        # Maximum log file size
+        max-file: "3"          # Maximum number of log files
+        compress: "true"       # Compress rotated logs
+
+    # -------------------------------------------------------------------------
+    # Network Configuration
+    # -------------------------------------------------------------------------
+    # By default, uses Docker's default bridge network
+    #
+    # OPTION 1: Use VPN Stack Network (RECOMMENDED for privacy)
+    # If you have a VPN container (e.g., gluetun, wireguard, openvpn),
+    # route this container's traffic through it:
+    #
+    # 1. Comment out the networks section below
+    # 2. Add network_mode pointing to your VPN container:
+    #    network_mode: "container:gluetun"
+    #    OR
+    #    network_mode: "service:vpn"
+    # 3. Ensure the VPN container is running before this one
+    #
+    # Example VPN Stack Integration (gluetun):
+    # network_mode: "container:gluetun"
+    #
+    # Example VPN Stack Integration (external network):
+    # networks:
+    #   - vpn_network
+    #
+    # OPTION 2: Custom Network (for multi-container setups)
+    # Uncomment below to use a dedicated network:
+    # networks:
+    #   - unit3d-network
+    #
+    # OPTION 3: Default Bridge Network (current configuration)
+    # No network configuration needed - uses Docker default
+
+# =============================================================================
+# Networks (Optional)
+# =============================================================================
+# Uncomment and configure based on your setup:
+
+# OPTION 1: External VPN Network
+# If you have a VPN stack with its own EXTERNAL network, use this:
+# networks:
+#   vpn_network:
+#     external: true
+#     name: gluetun_network  # Replace with your VPN network name
+#
+# Common VPN network names:
+# - gluetun_network (default for gluetun VPN)
+# - wg-easy_default (for wireguard-easy)
+# - vpn_default (for custom VPN stacks)
+#
+# To find your VPN network name:
+# docker network ls | grep vpn
+
+# OPTION 2: Custom Internal Network
+# For isolation without VPN:
+# networks:
+#   unit3d-network:
+#     driver: bridge
+#     ipam:
+#       config:
+#         - subnet: 172.28.0.0/16
+# =============================================================================
+# Important Notes for VPN Usage
+# =============================================================================
+# 1. When using network_mode: "container:xxx", you CANNOT expose ports
+#    or use the networks directive in the same service
+#
+#
+# 2. Health checks still work with VPN routing
+#
+# 3. The container will have the VPN's IP address for all external connections
+#
+# 4. If VPN container restarts, this container may need to restart as well
+#
+# 5. Test your VPN routing after setup:
+#    docker exec unit3d-upload-checker curl ifconfig.me
+#    (Should show VPN IP, not your real IP)
+#
+# =============================================================================
+
+# =============================================================================
+# Usage Instructions
+# =============================================================================
+#
+# Starting the container:
+#   docker-compose up -d
+#
+# Accessing the container:
+#   docker exec -it unit3d-upload-checker bash
+#
+# Viewing logs:
+#   docker-compose logs -f
+#
+# Stopping the container:
+#   docker-compose down
+#
+# Rebuilding after changes:
+#   docker-compose up -d --build
+#
+# Common commands inside container:
+#   python3 check.py run-all -v          # Run complete workflow
+#   python3 check.py scan -v             # Scan directories only
+#   python3 check.py tmdb -v             # Search TMDB
+#   python3 check.py search -v           # Search trackers
+#   python3 check.py save                # Create search data
+#   python3 check.py txt                 # Export to text files
+#   python3 check.py csv                 # Export to CSV
+#   python3 check.py gg                  # Export gg-bot commands
+#   python3 check.py ua                  # Export upload-assistant commands
+#   python3 check.py setting -t dir      # View directory settings
+#   python3 check.py setting-add -t dir -s /path  # Add directory
+#   python3 check.py clear-data          # Clear all scan data
+#
+# Troubleshooting:
+#   - Check logs: docker-compose logs -f unit3d-checker
+#   - Check health: docker inspect unit3d-upload-checker | grep -A 10 Health
+#   - Restart: docker-compose restart
+#   - Rebuild: docker-compose up -d --build --force-recreate
+#
+# =============================================================================
