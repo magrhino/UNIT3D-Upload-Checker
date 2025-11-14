@@ -1,0 +1,133 @@
+# =============================================================================
+# UNIT3D Upload Checker - Setup Script Docker Compose
+# =============================================================================
+# This compose file simplifies running the initial setup script without
+# needing to manually construct complex docker run commands.
+#
+# Quick Start:
+#   1. Ensure your .env file is configured with API keys and paths
+#   2. Run: docker-compose -f docker-compose.setup.yml run --rm setup
+#   3. The script will validate and save all settings to ./config/settings.json
+#
+# What This Does:
+#   - Mounts your media directories and config directory
+#   - Reads configuration from .env file
+#   - Runs the interactive setup.sh script
+#   - Shows clear error messages if directories don't exist or keys are invalid
+#   - Saves validated settings to ./config/settings.json
+#
+# After Setup:
+#   - Start the main container: docker-compose up -d
+#   - Access shell: docker exec -it unit3d-upload-checker bash
+#   - Run scans: python3 check.py run-all -v
+#
+# Re-running Setup:
+#   - Safe to run multiple times - it will update existing settings
+#   - Useful for adding new directories or API keys
+#
+# =============================================================================
+
+services:
+  setup:
+    # -------------------------------------------------------------------------
+    # Build/Image Configuration
+    # -------------------------------------------------------------------------
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        PYTHON_VERSION: 3.11
+        REPO_URL: https://github.com/magrhino/UNIT3D-Upload-Checker.git
+        REPO_BRANCH: main
+
+    image: unit3d-checker:latest
+
+    # -------------------------------------------------------------------------
+    # Container Behavior
+    # -------------------------------------------------------------------------
+    # Interactive terminal for setup prompts
+    stdin_open: true
+    tty: true
+
+    # Working directory
+    working_dir: /app
+
+    # Run the setup script
+    command: /app/scripts/setup.sh
+
+    # -------------------------------------------------------------------------
+    # Volume Mounts
+    # -------------------------------------------------------------------------
+    volumes:
+      # Media directory: mount ${HOST_MEDIA_DIR} (host) to ${CONTAINER_MEDIA_DIR} (container)
+      # The setup script will validate these directories exist
+      - ${HOST_MEDIA_DIR}:${CONTAINER_MEDIA_DIR}:ro
+
+      # Configuration directory: Where settings.json will be saved
+      # MUST be read-write for setup to work
+      - ./config:/app/data:rw
+
+      # Outputs directory (optional, but good to have)
+      - ./outputs:/app/outputs:rw
+
+    # -------------------------------------------------------------------------
+    # Environment Variables
+    # -------------------------------------------------------------------------
+    # NOTE: Using object/mapping syntax instead of array syntax to properly
+    # handle values with special characters (commas, spaces, etc.)
+    environment:
+      # === Media Configuration ===
+      # IMPORTANT: Use CONTAINER paths here, not host paths
+      # These should match where your volumes are mounted
+      # Supports comma-separated list: /data/movies,/data/tv,/data/anime
+      # Example: MEDIA_DIR=/media/movies,/media/tv
+      MEDIA_DIR: ${MEDIA_DIR}
+
+      # === TMDB Configuration ===
+      # Required: TMDB API key for movie metadata
+      # Get your key from: https://www.themoviedb.org/settings/api
+      TMDB_API_KEY: ${TMDB_API_KEY}
+
+      # === Tracker API Keys ===
+      # Add API keys for trackers you want to use
+      AITH_API_KEY: ${AITH_API_KEY:-}
+      BLU_API_KEY: ${BLU_API_KEY:-}
+      FNP_API_KEY: ${FNP_API_KEY:-}
+      LST_API_KEY: ${LST_API_KEY:-}
+      OE_API_KEY: ${OE_API_KEY:-}
+      RFX_API_KEY: ${RFX_API_KEY:-}
+      UPLOADCX_API_KEY: ${UPLOADCX_API_KEY:-}
+      RAS_API_KEY: ${RAS_API_KEY:-}
+      HHD_API_KEY: ${HHD_API_KEY:-}
+
+      # === Enabled Trackers ===
+      # Comma-separated list of tracker nicknames to enable
+      # Example: "ras,hhd,fnp,blu"
+      # Valid nicknames: aith, blu, fnp, lst, oe, rfx, ulcx, ras, hhd
+      SITES_ENABLED: ${SITES_ENABLED:-}
+
+      # === Optional: Automation Tool Paths ===
+      # Path to gg-bot-upload-assistant (for gg export)
+      GG_PATH: ${GG_PATH:-}
+
+      # Path to upload-assistant (for ua export)
+      UA_PATH: ${UA_PATH:-}
+
+      # === Python Configuration ===
+      PYTHONUNBUFFERED: 1
+      PYTHONDONTWRITEBYTECODE: 1
+
+# =============================================================================
+# Usage Examples
+# =============================================================================
+#
+# Run setup (interactive):
+#   docker-compose -f docker-compose.setup.yml run --rm setup
+#
+# Run setup (non-interactive with Enter key piped):
+#   echo "" | docker-compose -f docker-compose.setup.yml run --rm setup
+#
+# View logs if needed:
+#   docker-compose -f docker-compose.setup.yml logs setup
+#
+# =============================================================================

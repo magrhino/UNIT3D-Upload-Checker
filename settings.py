@@ -7,7 +7,11 @@ import requests
 
 class Settings:
     def __init__(self):
-        self.data_folder = "./data/"
+        # Use /app/data in Docker environment, ./data for local
+        if os.path.exists("/app") and os.access("/app", os.W_OK):
+            self.data_folder = "/app/data/"
+        else:
+            self.data_folder = "./data/"
         self.default_settings = {
             "directories": [],
             "tmdb_key": "",  # https://www.themoviedb.org/settings/api
@@ -181,6 +185,9 @@ class Settings:
             # Add the new path to the list
             directories.append(path)
             self.validate_directories()
+            print(path, " Successfully added to  directories")
+        else:
+            print(path, " Already in  directories")
 
     def validate_tmdb(self, key):
         try:
