@@ -2,31 +2,34 @@
 
 Focused reference for day-to-day Docker commands once the container has already been configured via `setup.sh`.
 
+Run these commands from the `docker/` directory. From the repository root, add
+`-f docker/docker-compose.yml` to compose commands.
+
 ## Container Lifecycle
 
 - Build image (after editing Dockerfile or requirements):
   ```bash
-  docker-compose build
+  docker compose build
   ```
 - Start services in background:
   ```bash
-  docker-compose up -d
+  docker compose up -d
   ```
 - Stop and remove containers:
   ```bash
-  docker-compose down
+  docker compose down
   ```
 - Rebuild and restart after config changes:
   ```bash
-  docker-compose up -d --build
+  docker compose up -d --build
   ```
 - Follow logs:
   ```bash
-  docker-compose logs -f
+  docker compose logs -f
   ```
 - Restart only the checker service:
   ```bash
-  docker-compose restart unit3d-checker
+  docker compose restart unit3d-checker
   ```
 
 ## One-Time Setup & Reconfiguration
@@ -34,11 +37,7 @@ Focused reference for day-to-day Docker commands once the container has already 
 Run whenever `.env` changes (new API keys, directories, etc.):
 
 ```bash
-docker run --rm -it \
-  -v ./config:/app/data:rw \
-  --env-file .env \
-  unit3d-checker:latest \
-  /app/scripts/setup.sh
+docker compose --profile setup run --rm setup
 ```
 
 ## Working Inside the Container
@@ -80,7 +79,7 @@ docker run --rm -it \
 ## Workflow Example
 
 ```bash
-docker-compose up -d
+docker compose up -d
 docker exec -it unit3d-upload-checker bash
 python3 check.py setting -t sites
 python3 check.py run-all -v
@@ -88,4 +87,4 @@ ls -lh /app/outputs/
 cat /app/outputs/fearnopeer_uploads.txt
 ```
 
-Use this file as a quick command cheat sheet; configuration details live in `SETUP_GUIDE.md`.
+Use this file as a quick command cheat sheet; configuration details live in `DOCKER_SETUP.md`.
