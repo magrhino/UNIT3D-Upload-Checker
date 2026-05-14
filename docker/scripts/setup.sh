@@ -3,7 +3,7 @@ set -e
 
 # UNIT3D Upload Checker - One-Time Setup Script
 # This script configures the application from environment variables
-# Run once before first use with: docker run --rm -it -v ./config:/app/data:rw --env-file .env unit3d-checker:latest /app/scripts/setup.sh
+# Run once before first use with: docker compose --profile setup run --rm setup
 
 echo "=================================================="
 echo "   UNIT3D Upload Checker - Initial Setup"
@@ -83,7 +83,7 @@ if [ -n "$TMDB_API_KEY" ]; then
     echo "Configuring TMDB key..."
     # Capture output to check for errors
     OUTPUT=$(python3 check.py setting-add -t tmdb -s "$TMDB_API_KEY" 2>&1)
-    if echo "$OUTPUT" | grep -q "Successfully added"; then
+    if echo "$OUTPUT" | grep -q "was added to tmdb"; then
         echo "✓ TMDB API key configured"
     else
         echo "✗ Failed to configure TMDB key"
@@ -111,20 +111,14 @@ echo "=================================================="
 
 if [ -n "$MEDIA_DIR" ]; then
     echo "Processing directories from MEDIA_DIR: $MEDIA_DIR"
-    echo "DEBUG: Raw MEDIA_DIR value: '$MEDIA_DIR'"
-    echo "DEBUG: Character count: ${#MEDIA_DIR}"
 
     # Split comma-separated list
     IFS=',' read -ra DIRS <<< "$MEDIA_DIR"
     ADDED_COUNT=0
 
-    echo "DEBUG: Number of directories detected: ${#DIRS[@]}"
-
     for i in "${!DIRS[@]}"; do
         # Trim whitespace
         DIR=$(echo "${DIRS[$i]}" | xargs)
-
-        echo "DEBUG: Processing index $i: '${DIRS[$i]}' -> trimmed: '$DIR'"
 
         if [ -n "$DIR" ]; then
             echo "  → Adding directory: $DIR"
@@ -139,6 +133,8 @@ if [ -n "$MEDIA_DIR" ]; then
                     echo "      Directory does not exist"
                 elif echo "$OUTPUT" | grep -q "Already in"; then
                     echo "      Already configured"
+                    ADDED_COUNT=$((ADDED_COUNT + 1))
+                    continue
                 elif [ -n "$OUTPUT" ]; then
                     echo "      $(echo "$OUTPUT" | head -n 1)"
                 fi
@@ -154,6 +150,7 @@ else
     echo "  Set MEDIA_DIR in your .env file"
     echo "  You can specify multiple directories separated by commas:"
     echo "  MEDIA_DIR=/data/movies,/data/tv,/data/anime"
+    ERRORS=$((ERRORS + 1))
 fi
 
 # ================================================
@@ -244,6 +241,8 @@ if [ -n "$SITES_ENABLED" ]; then
                     echo "      API key not configured yet"
                 elif echo "$OUTPUT" | grep -q "Already in"; then
                     echo "      Already enabled"
+                    ENABLED_COUNT=$((ENABLED_COUNT + 1))
+                    continue
                 elif [ -n "$OUTPUT" ]; then
                     echo "      $(echo "$OUTPUT" | head -n 1)"
                 fi
@@ -347,7 +346,7 @@ fi
 echo ""
 echo "Next steps:"
 echo "1. Start your container:"
-echo "   docker-compose up -d"
+echo "   docker compose up -d"
 echo ""
 echo "2. Access the shell:"
 echo "   docker exec -it unit3d-upload-checker bash"
@@ -357,4 +356,8 @@ echo "   python3 check.py run-all -v"
 echo ""
 echo "=================================================="
 
-exit 0
+if [ $ERRORS -eq 0 ]; then
+    exit 0
+else
+    exit 1
+fi

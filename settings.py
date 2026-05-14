@@ -195,13 +195,13 @@ class Settings:
             response = requests.get(url)
             if response.status_code != 200:
                 print("Invalid API Key")
-                return
-            else:
-                self.current_settings["tmdb_key"] = key
-                print("Key is valid and was added to tmdb")
+                return False
+            self.current_settings["tmdb_key"] = key
+            print("Key is valid and was added to tmdb")
+            return True
         except Exception as e:
             print("Error searching api:", e)
-            return
+            return False
 
     def validate_key(self, key, target):
         api_key = None
@@ -213,7 +213,7 @@ class Settings:
                     break
             if not tracker:
                 print(target, " is not a supported site")
-                return
+                return False
             try:
                 url = self.tracker_info[tracker]["url"]
                 url = f"{url}api/torrents?perPage=10&api_token={key}"
@@ -221,18 +221,20 @@ class Settings:
                 # UNIT3D pushes you to the homepage if the api key is invalid
                 if response.history:
                     print("Invalid API Key")
-                    return
+                    return False
                 else:
                     api_key = key
                 self.current_settings["keys"][tracker] = api_key
                 self.write_settings()
                 print("Key is valid and was added to", tracker)
+                return True
             except Exception as e:
                 print("Error searching api:", e)
-                return
+                return False
 
         except Exception as e:
             print("Error Validating Key:", e)
+            return False
 
     def setting_helper(self, target):
         settings = self.current_settings
@@ -277,9 +279,9 @@ class Settings:
             if matching_key:
                 target = matching_key  # Update target to the full key
                 if target == "tmdb_key":
-                    self.validate_tmdb(value)
-                    settings[target] = value
-                if isinstance(settings[target], str):
+                    if not self.validate_tmdb(value):
+                        return False
+                elif isinstance(settings[target], str):
                     settings[target] = value
                     print(value, " Successfully added to ", target)
                 elif isinstance(settings[target], list):
@@ -294,11 +296,12 @@ class Settings:
                                     value,
                                     f"\nAdd one using setting-add -t {value} -s <api_key>",
                                 )
+                                return False
                         else:
                             print(value, " is not a supported site")
-                            return
-                        if value in settings[target]:  # Don't add duplicates
-                            print(value, " Already in ", target)
+                            return False
+                        if tracker in settings[target]:  # Don't add duplicates
+                            print(tracker, " Already in ", target)
                             return
                         else:
                             settings[target].append(tracker)  # Add new site
@@ -326,13 +329,17 @@ class Settings:
             elif target in nicknames:
                 if not value:
                     print("No api key provided")
+                    return False
                 else:
-                    self.validate_key(value, target)
+                    if not self.validate_key(value, target):
+                        return False
             self.current_settings = settings
             self.write_settings()
+            return True
         except Exception as e:
             print("Error updating setting", e)
             print(traceback.format_exc())
+            return False
 
     def return_setting(self, target):
         try:
